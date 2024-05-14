@@ -3,8 +3,8 @@ package org.example;
 import java.util.concurrent.ArrayBlockingQueue;
 
 public class Request {
-    int requestsBuffer = 10;
-    ArrayBlockingQueue<Request> requests = new ArrayBlockingQueue<>(requestsBuffer);
+    private static final int requestsBuffer = 10;
+    private static ArrayBlockingQueue<Request> requests = new ArrayBlockingQueue<Request>(requestsBuffer);
 
     private Request (){} // конструктор
     public String getMethod() {
@@ -20,7 +20,16 @@ public class Request {
     private String path;
     private String protocolVersion;
 
-    public static
+public static void putRequest (String [] parts){
+    Request request = new Request();
+    request.method = parts [0];
+    request.path = parts [1];
+    try {
+        requests.put(request);
+    } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+    }
+}
      
 
 

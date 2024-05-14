@@ -5,11 +5,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 
 public class Server {
 
-
+Map<String, Handler> mapGet = new HashMap<>();
 
     public void listen (int port){
         try (final var serverSocket = new ServerSocket(9999)) {
@@ -27,12 +29,22 @@ public class Server {
                     if (parts.length != 3) {
                         continue;
                     }
-
+                Request.putRequest(parts);
 
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+    public void addHandler (String method, String path, Handler handler) {
+        if (method == "GET") {
+            mapGet.put(path, new Handler() {
+                @Override
+                public void handle() {
+
+                }
+            });
         }
     }
 
