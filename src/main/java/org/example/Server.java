@@ -5,6 +5,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -25,6 +28,9 @@ Map<String, Handler> mapGet = new HashMap<>();
                     // must be in form GET /path HTTP/1.1
                     final var requestLine = in.readLine();
                     final var parts = requestLine.split(" ");
+                    for (int i = 0; i < parts.length; i++) {
+                        System.out.println(parts[i]);
+                    }
 
                     if (parts.length != 3) {
                         continue;
@@ -39,12 +45,7 @@ Map<String, Handler> mapGet = new HashMap<>();
     }
     public void addHandler (String method, String path, Handler handler) {
         if (method == "GET") {
-            mapGet.put(path, new Handler() {
-                @Override
-                public void handle() {
 
-                }
-            });
         }
     }
 
