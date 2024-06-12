@@ -10,14 +10,16 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
 
 public class Server {
 
-Map<String, Handler> mapGet = new HashMap<>();
+    private static final Map<String, Handler> mapGet = new HashMap<>();
+    private final int threads = 64;
 
-    public void listen (int port){
-        try (final var serverSocket = new ServerSocket(9999)) {
+
+
+    public void listen(int port) {
+        try (final var serverSocket = Server.getSocket(port)) {
             while (true) {
                 try (
                         final var socket = serverSocket.accept();
@@ -28,25 +30,87 @@ Map<String, Handler> mapGet = new HashMap<>();
                     // must be in form GET /path HTTP/1.1
                     final var requestLine = in.readLine();
                     final var parts = requestLine.split(" ");
-                    for (int i = 0; i < parts.length; i++) {
-                        System.out.println(parts[i]);
-                    }
+                    if (parts.length != 3) continue;
+                    if (!mapGet.containsKey(parts[1])) {
+                        out.write((
+                                "HTTP/1.1 404 Not Found\r\n"
 
-                    if (parts.length != 3) {
+                        ).getBytes());
+                        out.flush();
                         continue;
                     }
-                Request.putRequest(parts);
+                    Request.putRequest(parts);
 
+                    Request request = null;
+                    try {
+                        request = Request.takeRequest();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    Handler handler = mapGet.get(request.getPath());
+                    handler.handle(request, out);
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
-    public void addHandler (String method, String path, Handler handler) {
-        if (method == "GET") {
 
-        }
+
+    public void putHandlers() {
+        mapGet.put("/classic.html", (request, responseStream) -> {
+            String path = request.getPath();
+            var filePath = Path.of(".", "public", path);
+            String mimeType;
+            try {
+                mimeType = Files.probeContentType(filePath);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            // special case for classic
+            if (path.equals("/classic.html")) {
+                String template;
+                try {
+                    template = Files.readString(filePath);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                var content = template.replace(
+                        "{time}",
+                        LocalDateTime.now().toString()
+                ).getBytes();
+                try {
+                    responseStream.write((
+                            "HTTP/1.1 200 OK\r\n" +
+                                    "Content-Type: " + mimeType + "\r\n" +
+                                    "Content-Length: " + content.length + "\r\n" +
+                                    "Connection: close\r\n" +
+                                    "\r\n"
+                    ).getBytes());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                try {
+                    responseStream.write(content);
+                    responseStream.flush();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+            }
+        });
+
     }
+    private static ServerSocket getSocket(int port){
+        ServerSocket serverSocket;
+        try {
+            serverSocket = new ServerSocket(port);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return serverSocket;
+    }
+
 
 }
