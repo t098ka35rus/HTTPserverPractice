@@ -24,7 +24,9 @@ public class CodeToRefactoring {
                     // read only request line for simplicity
                     // must be in form GET /path HTTP/1.1
                     final var requestLine = in.readLine();
+                    System.out.println(requestLine);
                     final var parts = requestLine.split(" ");
+
 
                     if (parts.length != 3) {
                         // just close socket
@@ -32,16 +34,6 @@ public class CodeToRefactoring {
                     }
 
                     final var path = parts[1];
-                    if (!validPaths.contains(path)) {
-                        out.write((
-                                "HTTP/1.1 404 Not Found\r\n" +
-                                        "Content-Length: 0\r\n" +
-                                        "Connection: close\r\n" +
-                                        "\r\n"
-                        ).getBytes());
-                        out.flush();
-                        continue;
-                    }
 
                     final var filePath = Path.of(".", "public", path);
                     final var mimeType = Files.probeContentType(filePath);

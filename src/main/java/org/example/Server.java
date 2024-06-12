@@ -16,8 +16,9 @@ public class Server {
 
 Map<String, Handler> mapGet = new HashMap<>();
 
+
     public void listen (int port){
-        try (final var serverSocket = new ServerSocket(9999)) {
+        try (final var serverSocket = new ServerSocket(port)) {
             while (true) {
                 try (
                         final var socket = serverSocket.accept();
@@ -27,20 +28,21 @@ Map<String, Handler> mapGet = new HashMap<>();
                     // read only request line for simplicity
                     // must be in form GET /path HTTP/1.1
                     final var requestLine = in.readLine();
+                    System.out.println(requestLine);
                     final var parts = requestLine.split(" ");
-                    for (int i = 0; i < parts.length; i++) {
-                        System.out.println(parts[i]);
-                    }
+                    System.out.println("parts.length = " + parts.length);
+                    System.out.println(parts[0]);
+                    System.out.println(parts[1]);
+                    System.out.println(parts[2]);
 
-                    if (parts.length != 3) {
-                        continue;
-                    }
-                Request.putRequest(parts);
+                    if (parts.length != 3) continue;
+
 
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
+
         }
     }
     public void addHandler (String method, String path, Handler handler) {
@@ -48,5 +50,27 @@ Map<String, Handler> mapGet = new HashMap<>();
 
         }
     }
+    public void getRequest (String [] parts){
+        Request.putRequest(parts);
+    }
+    public void getResponse () throws InterruptedException {
+        Request request = Request.takeRequest();
+        String path = request.getPath();
+        Handler handler = mapGet.get(path);
+        //handler.handle(request, out);
+
+
+    }
+
+    public void putHandlers (){
+        mapGet.put("/classic.html", new Handler() {
+            @Override
+            public void handle(Request request, BufferedOutputStream responseStream) {
+
+            }
+        });
+    }
+
+
 
 }
