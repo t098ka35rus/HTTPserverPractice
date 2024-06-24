@@ -5,7 +5,6 @@ public class Main {
 
         System.out.println("Поехали");
         Server server = new Server();
-        server.putHandlers();
-        server.listen(9999);
+        server.listen(999);
     }
 }

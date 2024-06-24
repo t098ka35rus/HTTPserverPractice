@@ -4,7 +4,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 public class Request {
     private static final int requestsBuffer = 10;
-    private static final ArrayBlockingQueue<Request> requests = new ArrayBlockingQueue<>(requestsBuffer,true);
+    private static ArrayBlockingQueue<Request> requests = new ArrayBlockingQueue<Request>(requestsBuffer);
 
     private Request (){} // конструктор
     public String getMethod() {
@@ -29,10 +29,6 @@ public static void putRequest (String [] parts){
     } catch (InterruptedException e) {
         throw new RuntimeException(e);
     }
-
-}
-public static Request takeRequest() throws InterruptedException {
-   return requests.take();
 }
      
 
