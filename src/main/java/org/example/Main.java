@@ -1,10 +1,23 @@
 package org.example;
 
+import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         System.out.println("Поехали");
-        Server server = new Server();
-        server.listen(999);
+        ClientSocketHandler.putHandlers();
+        ThreadPoolExecutor executor =
+                (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+        executor.submit(ClientSocketHandler::currentThread);
+        try {
+            Server.startServer();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
     }
 }

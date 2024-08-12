@@ -1,116 +1,31 @@
 package org.example;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.ServerSocket;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.net.Socket;
+import java.util.LinkedList;
 
 public class Server {
+    public static final int PORT = 8080;
 
-    private static final Map<String, Handler> mapGet = new HashMap<>();
-    private final int threads = 64;
-
-
-
-    public void listen(int port) {
-        try (final var serverSocket = Server.getSocket(port)) {
+    public static void startServer() throws IOException {
+        try (ServerSocket server = new ServerSocket(PORT)) {
+            LinkedList<ClientSocketHandler> clientSocketsList = new LinkedList<>();
             while (true) {
-                try (
-                        final var socket = serverSocket.accept();
-                        final var in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                        final var out = new BufferedOutputStream(socket.getOutputStream());
-                ) {
-                    // read only request line for simplicity
-                    // must be in form GET /path HTTP/1.1
-                    final var requestLine = in.readLine();
-                    final var parts = requestLine.split(" ");
-                    if (parts.length != 3) continue;
-                    if (!mapGet.containsKey(parts[1])) {
-                        out.write((
-                                "HTTP/1.1 404 Not Found\r\n"
-
-                        ).getBytes());
-                        out.flush();
-                        continue;
-                    }
-                    Request.putRequest(parts);
-
-                    Request request = null;
-                    try {
-                        request = Request.takeRequest();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                    Handler handler = mapGet.get(request.getPath());
-                    handler.handle(request, out);
+                Socket socket = server.accept();
+                try {
+                    clientSocketsList.add(new ClientSocketHandler(socket)); // добавить новое соединенние в список
+                    System.out.println(clientSocketsList.getLast());
+                } catch (IOException e) {
+                    socket.close();
                 }
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
-
-
-    public void putHandlers() {
-        mapGet.put("/classic.html", (request, responseStream) -> {
-            String path = request.getPath();
-            var filePath = Path.of(".", "public", path);
-            String mimeType;
-            try {
-                mimeType = Files.probeContentType(filePath);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            // special case for classic
-            if (path.equals("/classic.html")) {
-                String template;
-                try {
-                    template = Files.readString(filePath);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                var content = template.replace(
-                        "{time}",
-                        LocalDateTime.now().toString()
-                ).getBytes();
-                try {
-                    responseStream.write((
-                            "HTTP/1.1 200 OK\r\n" +
-                                    "Content-Type: " + mimeType + "\r\n" +
-                                    "Content-Length: " + content.length + "\r\n" +
-                                    "Connection: close\r\n" +
-                                    "\r\n"
-                    ).getBytes());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                try {
-                    responseStream.write(content);
-                    responseStream.flush();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-            }
-        });
-
-    }
-    private static ServerSocket getSocket(int port){
-        ServerSocket serverSocket;
-        try {
-            serverSocket = new ServerSocket(port);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return serverSocket;
-    }
-
-
 }
+
+
+
+
+
+
