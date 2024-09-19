@@ -9,7 +9,7 @@ public class Request {
     private String path;
     private String protocolVersion;
 
-    //private static final Map<String, String> queryMap = new HashMap<>();
+
 
     private Request() {
     }// конструктор
