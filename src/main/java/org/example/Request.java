@@ -36,7 +36,7 @@ public class Request {
         return  queryMap;
     }
 
-    public String getQueryParam(String name) {
+    public String getQueryParam1(String name) {
         return "";
     }
 
