@@ -1,10 +1,15 @@
 package org.example;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Request {
 
     private String method;
     private String path;
     private String protocolVersion;
+
+    private static final Map<String, String> queryMap = new HashMap<>();
 
     private Request() {
     }// конструктор
@@ -26,6 +31,10 @@ public class Request {
     public String getPath() {
         return path;
     }
+
+
+
+
 
 
 }
