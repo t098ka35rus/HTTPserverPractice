@@ -10,7 +10,7 @@ public class Main {
         System.out.println("Поехали");
         ClientSocketHandler.putHandlers();
         ThreadPoolExecutor executor =
-                (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+                (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
         executor.submit(ClientSocketHandler::currentThread);
         try {
             Server.startServer();

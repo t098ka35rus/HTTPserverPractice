@@ -15,6 +15,9 @@ public class ClientSocketHandler extends Thread {
     private static final Map<String, Handler> mapGet = new HashMap<>();
 
     private final Socket socket; // сокет, через который сервер общается с клиентом,
+    private static final String GET = "GET";
+    private static final String POST = "POST";
+
 
     public ClientSocketHandler(Socket socket) throws IOException {
         this.socket = socket;
@@ -58,6 +61,7 @@ public class ClientSocketHandler extends Thread {
                 try {
                     responseStream.write(content);
                     responseStream.flush();
+                    System.out.println("response flushed");
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -65,6 +69,20 @@ public class ClientSocketHandler extends Thread {
             }
         });
 
+
+
+    }
+
+    private static void bad400request(BufferedOutputStream out) throws IOException {
+        out.write((
+                """
+                        HTTP/1.1 400 Bad Request\r
+                        Content-Length: 0\r
+                        Connection: close\r
+                        \r
+                        """
+        ).getBytes());
+        out.flush();
     }
 
     public void run() {
@@ -80,11 +98,12 @@ public class ClientSocketHandler extends Thread {
                 final var parts = requestLine.split(" ");
                 if (parts.length != 3) continue;
                 if (!mapGet.containsKey(parts[1])) {
-                    out.write(("HTTP/1.1 404 Not Found\r\n").getBytes());
-                    out.flush();
+                    bad400request(out);
                     continue;
                 }
+
                 Request request = Request.getRequest(parts);
+                System.out.println("PATH = " + request.getPath());
                 Handler handler;
                 synchronized (mapGet) {
                     handler = mapGet.get(request.getPath());
@@ -99,8 +118,5 @@ public class ClientSocketHandler extends Thread {
     }
 
 
+
 }
-
-
-
-
