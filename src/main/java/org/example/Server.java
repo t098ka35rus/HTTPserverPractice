@@ -15,7 +15,7 @@ public class Server {
                 Socket socket = server.accept();
                 try {
                     clientSocketsList.add(new ClientSocketHandler(socket)); // добавить новое соединенние в список
-                    System.out.println("socket = " +clientSocketsList.getLast());
+                    System.out.println("socket = " + clientSocketsList.getLast());
                 } catch (IOException e) {
                     socket.close();
                 }

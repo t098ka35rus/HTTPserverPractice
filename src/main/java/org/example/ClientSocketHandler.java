@@ -13,10 +13,9 @@ import java.util.Map;
 
 public class ClientSocketHandler extends Thread {
     private static final Map<String, Handler> mapGet = new HashMap<>();
-
-    private final Socket socket; // сокет, через который сервер общается с клиентом,
     private static final String GET = "GET";
     private static final String POST = "POST";
+    private final Socket socket; // сокет, через который сервер общается с клиентом,
 
 
     public ClientSocketHandler(Socket socket) throws IOException {
@@ -73,34 +72,33 @@ public class ClientSocketHandler extends Thread {
             String path = request.getPath();
             if (path.equals("/")) {
                 byte[] content;
-            String template = """
-                    <!doctype html>
-                    <html lang="en">
-                    <head>
-                      <meta charset="UTF-8">
-                      <meta name="viewport"
-                            content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-                      <meta http-equiv="X-UA-Compatible" content="ie=edge">
-                      <title>Document</title>
-                    </head>
-                    <body>
-                    <p>Path = {path}</p>
-                    <p>Login = {login}</p>
-                    <p>Password = {password}</p>
-                    </body>
-                    </html>""";
-                String s = template.replace( "{path}", path);
-                content  = s.getBytes();
-            if (request.isQueryDetected()) {
-                var login = s.replace(
-                        "{login}",
-                        request.getQueryParam("login"));
-                var password = login.replace(
-                        "{password}",
-                        request.getQueryParam("password"));
-                content = password.getBytes();
-            }
-
+                String template = """
+                        <!doctype html>
+                        <html lang="en">
+                        <head>
+                          <meta charset="UTF-8">
+                          <meta name="viewport"
+                                content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+                          <meta http-equiv="X-UA-Compatible" content="ie=edge">
+                          <title>Document</title>
+                        </head>
+                        <body>
+                        <p>Path = {path}</p>
+                        <p>Login = {login}</p>
+                        <p>Password = {password}</p>
+                        </body>
+                        </html>""";
+                String s = template.replace("{path}", path);
+                content = s.getBytes();
+                if (request.isQueryDetected()) {
+                    var login = s.replace(
+                            "{login}",
+                            request.getQueryParam("login"));
+                    var password = login.replace(
+                            "{password}",
+                            request.getQueryParam("password"));
+                    content = password.getBytes();
+                }
 
 
                 try {
@@ -116,11 +114,11 @@ public class ClientSocketHandler extends Thread {
                 }
                 try {
                     responseStream.write(content);
-                responseStream.flush();
-                System.out.println("response flushed");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+                    responseStream.flush();
+                    System.out.println("response flushed");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
 
         });
@@ -170,7 +168,6 @@ public class ClientSocketHandler extends Thread {
         }
 
     }
-
 
 
 }
