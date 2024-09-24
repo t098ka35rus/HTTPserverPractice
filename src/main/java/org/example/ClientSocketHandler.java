@@ -69,6 +69,61 @@ public class ClientSocketHandler extends Thread {
             }
         });
 
+        mapGet.put("/", (request, responseStream) -> {
+            String path = request.getPath();
+            if (path.equals("/")) {
+                byte[] content;
+            String template = """
+                    <!doctype html>
+                    <html lang="en">
+                    <head>
+                      <meta charset="UTF-8">
+                      <meta name="viewport"
+                            content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+                      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+                      <title>Document</title>
+                    </head>
+                    <body>
+                    <p>Path = {path}</p>
+                    <p>Login = {login}</p>
+                    <p>Password = {password}</p>
+                    </body>
+                    </html>""";
+                String s = template.replace( "{path}", path);
+                content  = s.getBytes();
+            if (request.isQueryDetected()) {
+                var login = s.replace(
+                        "{login}",
+                        request.getQueryParam("login"));
+                var password = login.replace(
+                        "{password}",
+                        request.getQueryParam("password"));
+                content = password.getBytes();
+            }
+
+
+
+                try {
+                    responseStream.write((
+                            "HTTP/1.1 200 OK\r\n" +
+                                    "Content-Type: " + "text/html" + "\r\n" +
+                                    "Content-Length: " + content.length + "\r\n" +
+                                    "Connection: close\r\n" +
+                                    "\r\n"
+                    ).getBytes());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                try {
+                    responseStream.write(content);
+                responseStream.flush();
+                System.out.println("response flushed");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            }
+
+        });
 
 
     }
@@ -94,21 +149,20 @@ public class ClientSocketHandler extends Thread {
                 // read only request line for simplicity
                 // must be in form GET /path HTTP/1.1
                 final var requestLine = in.readLine();
-                System.out.println("requestLine =" + requestLine);
+                System.out.println("requestLine = " + requestLine);
                 final var parts = requestLine.split(" ");
                 if (parts.length != 3) continue;
-                if (!mapGet.containsKey(parts[1])) {
+                Request request = Request.getRequest(parts);
+                String path = request.getPath();
+                if (!mapGet.containsKey(path)) {
                     bad400request(out);
                     continue;
                 }
-
-                Request request = Request.getRequest(parts);
-                System.out.println("PATH = " + request.getPath());
+                System.out.println("path valid");
                 Handler handler;
                 synchronized (mapGet) {
-                    handler = mapGet.get(request.getPath());
+                    handler = mapGet.get(path);
                 }
-                System.out.println("request.getPath() = " + request.getPath());
                 handler.handle(request, out);
             } catch (IOException e) {
                 throw new RuntimeException(e);

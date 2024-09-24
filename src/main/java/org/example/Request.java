@@ -18,21 +18,31 @@ public class Request {
 
 
 
+    private boolean queryDetected = false;
+
+
+
+
     private Request() {
     }// конструктор
 
     public static Request getRequest(String[] parts) {
         Request request = new Request();
         request.method = parts[0];
-        String[] pathAndQuery = parts[1].split("\\?");
-        request.path = pathAndQuery[0];
-        request.query = "?" + pathAndQuery[1];
+        if(parts[1].contains("?")){
+            request.queryDetected = true;
+            String[] pathAndQuery = parts[1].split("\\?");
+            request.path = pathAndQuery[0];
+            request.query = "?" + pathAndQuery[1];
+        }else request.path = parts[1];
         request.protocolVersion = parts[2];
-
-
         return request;
     }
 
+
+    public boolean isQueryDetected() {
+        return queryDetected;
+    }
     public String getMethod() {
         return method;
     }
@@ -46,16 +56,16 @@ public class Request {
         return URLEncodedUtils.parse(uri, StandardCharsets.ISO_8859_1);
     }
 
-    public ArrayList<String> getQueryParam(String name) {
-        ArrayList<String> strings = new ArrayList<>();
+    public String getQueryParam(String name) {
+        String s = null;
         List<NameValuePair> list = getQueryParams();
         int i = 0;
         for (NameValuePair nameValuePair : list) {
             if(nameValuePair.getName().equals(name)){
-                strings.add(nameValuePair.getValue());
+               s =  nameValuePair.getValue();
             }
         }
-        return strings;
+        return s;
     }
 
 
